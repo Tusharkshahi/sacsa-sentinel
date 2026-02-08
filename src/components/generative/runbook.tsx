@@ -11,20 +11,20 @@ export const runbookSchema = z.object({
   estimatedTime: z.string().default("Unknown"),
   steps: z.array(
     z.object({
-      title: z.string(),
-      description: z.string(),
-      command: z.string().optional(),
-      warning: z.string().optional(),
-      checkpoints: z.array(z.string()).optional(),
+      title: z.string().default("Unknown Step"),
+      description: z.string().default("No description"),
+      command: z.string().optional().default(""),
+      warning: z.string().optional().default(""),
+      checkpoints: z.array(z.string()).optional().default([]),
     })
   ).default([]),
-  prerequisites: z.array(z.string()).optional(),
+  prerequisites: z.array(z.string()).optional().default([]),
   troubleshooting: z.array(
     z.object({
-      issue: z.string(),
-      solution: z.string(),
+      issue: z.string().default("Unknown issue"),
+      solution: z.string().default("No solution available"),
     })
-  ).optional(),
+  ).optional().default([]),
 });
 
 type RunbookProps = z.infer<typeof runbookSchema>;

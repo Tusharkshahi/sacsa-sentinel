@@ -7,10 +7,10 @@ export const battleStatsSchema = z.object({
   title: z.string().default("Metrics"),
   metrics: z.array(
     z.object({
-      label: z.string(),
-      value: z.union([z.string(), z.number()]),
-      change: z.number().optional(),
-      icon: z.string().optional(),
+      label: z.string().default("Unknown"),
+      value: z.union([z.string(), z.number()]).default("N/A"),
+      change: z.number().optional().default(0),
+      icon: z.string().optional().default(""),
     })
   ).default([]),
   status: z.enum(["victory", "neutral", "alert"]).optional().default("neutral"),

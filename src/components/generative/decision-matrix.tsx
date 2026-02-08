@@ -9,18 +9,18 @@ export const decisionMatrixSchema = z.object({
   context: z.string().default("No context provided"),
   options: z.array(
     z.object({
-      name: z.string(),
-      score: z.number().min(0).max(10),
-      recommended: z.boolean().optional(),
+      name: z.string().default("Unknown Option"),
+      score: z.number().min(0).max(10).default(5),
+      recommended: z.boolean().optional().default(false),
       pros: z.array(z.string()).default([]),
       cons: z.array(z.string()).default([]),
       metrics: z.object({
-        performance: z.number().min(0).max(10).optional(),
-        cost: z.number().min(0).max(10).optional(),
-        complexity: z.number().min(0).max(10).optional(),
-        community: z.number().min(0).max(10).optional(),
-      }).optional(),
-      useCases: z.array(z.string()).optional(),
+        performance: z.number().min(0).max(10).optional().default(5),
+        cost: z.number().min(0).max(10).optional().default(5),
+        complexity: z.number().min(0).max(10).optional().default(5),
+        community: z.number().min(0).max(10).optional().default(5),
+      }).optional().default({ performance: 5, cost: 5, complexity: 5, community: 5 }),
+      useCases: z.array(z.string()).optional().default([]),
     })
   ).default([]),
   recommendation: z.string().default("No recommendation available"),

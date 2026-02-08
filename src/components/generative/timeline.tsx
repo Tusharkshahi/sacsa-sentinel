@@ -8,11 +8,11 @@ export const timelineSchema = z.object({
   title: z.string().default("Timeline"),
   events: z.array(
     z.object({
-      title: z.string(),
-      description: z.string(),
-      timestamp: z.string(),
-      status: z.enum(["completed", "in-progress", "pending", "failed"]),
-      meta: z.string().optional(),
+      title: z.string().default("Unknown Event"),
+      description: z.string().default("No description"),
+      timestamp: z.string().default(new Date().toISOString()),
+      status: z.enum(["completed", "in-progress", "pending", "failed"]).default("pending"),
+      meta: z.string().optional().default(""),
     })
   ).default([]),
 });

@@ -13,19 +13,19 @@ import { cn } from "@/lib/utils";
 export const tacticalRollbackInputSchema = z.object({
   deploymentId: z.string().default('unknown'),
   projectName: z.string().default('unknown-project'),
-  targetVersion: z.string().optional(),
-  reason: z.string().optional(),
+  targetVersion: z.string().optional().default(''),
+  reason: z.string().optional().default(''),
 });
 
 export const tacticalRollbackOutputSchema = z.object({
-  success: z.boolean(),
-  deploymentId: z.string(),
-  previousDeploymentId: z.string().optional(),
-  status: z.enum(["initiated", "in-progress", "completed", "failed"]),
-  progress: z.number().min(0).max(100),
-  message: z.string(),
-  timestamp: z.string(),
-  estimatedCompletion: z.string().optional(),
+  success: z.boolean().default(false),
+  deploymentId: z.string().default('unknown'),
+  previousDeploymentId: z.string().optional().default(''),
+  status: z.enum(["initiated", "in-progress", "completed", "failed"]).default("initiated"),
+  progress: z.number().min(0).max(100).default(0),
+  message: z.string().default(''),
+  timestamp: z.string().default(new Date().toISOString()),
+  estimatedCompletion: z.string().optional().default(''),
 });
 
 export type TacticalRollbackInput = z.infer<typeof tacticalRollbackInputSchema>;

@@ -23,10 +23,10 @@ export const threatAlertSchema = z.object({
     })
   ).default([]),
   summary: z.object({
-    critical: z.number(),
-    warning: z.number(),
-    resolved: z.number(),
-    totalEvents: z.number(),
+    critical: z.number().default(0),
+    warning: z.number().default(0),
+    resolved: z.number().default(0),
+    totalEvents: z.number().default(0),
   }).optional().default({ critical: 0, warning: 0, resolved: 0, totalEvents: 0 }),
   timestamp: z.string().optional().default(new Date().toISOString()),
 });

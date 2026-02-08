@@ -25,17 +25,17 @@ export const fortressDiffSchema = z.object({
     deletions: z.number().default(0),
     changes: z.array(
       z.object({
-        lineNumber: z.number(),
-        type: z.enum(["add", "remove", "context"]),
-        content: z.string(),
+        lineNumber: z.number().default(0),
+        type: z.enum(["add", "remove", "context"]).default("context"),
+        content: z.string().default(""),
       })
     ).default([]),
   }).optional().default({ fileName: 'unknown', language: 'text', additions: 0, deletions: 0, changes: [] }),
   analysis: z.object({
     severity: z.enum(["high", "medium", "low"]).default("low"),
     potentialIssues: z.array(z.string()).default([]),
-    recommendation: z.string().optional(),
-  }).optional().default({ severity: "low", potentialIssues: [] }),
+    recommendation: z.string().optional().default(""),
+  }).optional().default({ severity: "low", potentialIssues: [], recommendation: "" }),
 });
 
 export type FortressDiffData = z.infer<typeof fortressDiffSchema>;

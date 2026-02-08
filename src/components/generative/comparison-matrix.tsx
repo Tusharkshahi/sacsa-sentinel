@@ -8,17 +8,17 @@ export const comparisonMatrixSchema = z.object({
   title: z.string().default("Comparison"),
   items: z.array(
     z.object({
-      name: z.string(),
+      name: z.string().default("Unknown"),
       features: z.array(
         z.object({
-          name: z.string(),
-          value: z.union([z.boolean(), z.string()]),
+          name: z.string().default("Unknown"),
+          value: z.union([z.boolean(), z.string()]).default(false),
         })
       ).default([]),
-      highlighted: z.boolean().optional(),
+      highlighted: z.boolean().optional().default(false),
     })
-  ),
-  featureLabels: z.array(z.string()),
+  ).default([]),
+  featureLabels: z.array(z.string()).default([]),
 });
 
 type ComparisonMatrixProps = z.infer<typeof comparisonMatrixSchema>;

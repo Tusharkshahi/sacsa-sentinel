@@ -48,6 +48,7 @@ export default async function SentinelPage() {
   const rollbackData = {
     deploymentId: latestDeployment?.id || "dpl_demo",
     projectName: vercelProjectName,
+    targetVersion: latestDeployment?.url || "",
     reason: "Monitoring for potential rollback scenarios",
   };
 
@@ -55,10 +56,10 @@ export default async function SentinelPage() {
   const metricsData = {
     title: "System Vitals",
     metrics: [
-      { label: "Response Time", value: "247ms", change: -12 },
-      { label: "Uptime", value: "99.98%", change: 0.1 },
-      { label: "Active Incidents", value: threatData.summary.critical + threatData.summary.warning, change: -25 },
-      { label: "Deployments Today", value: deploymentsData.deployments?.length || 0, change: 15 },
+      { label: "Response Time", value: "247ms", change: -12, icon: "⚡" },
+      { label: "Uptime", value: "99.98%", change: 0.1, icon: "🛡️" },
+      { label: "Active Incidents", value: threatData.summary.critical + threatData.summary.warning, change: -25, icon: "🚨" },
+      { label: "Deployments Today", value: deploymentsData.deployments?.length || 0, change: 15, icon: "🚀" },
     ],
     status: threatData.summary.critical > 0 ? "alert" as const : "victory" as const,
   };

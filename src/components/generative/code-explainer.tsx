@@ -11,14 +11,14 @@ export const codeExplainerSchema = z.object({
   explanation: z.string().default("No explanation available"),
   breakdown: z.array(
     z.object({
-      lineRange: z.string(),
-      explanation: z.string(),
-      concept: z.string().optional(),
+      lineRange: z.string().default("1-1"),
+      explanation: z.string().default("No explanation"),
+      concept: z.string().optional().default(""),
     })
   ).default([]),
   keyTakeaways: z.array(z.string()).default([]),
-  gotchas: z.array(z.string()).optional(),
-  improvements: z.array(z.string()).optional(),
+  gotchas: z.array(z.string()).optional().default([]),
+  improvements: z.array(z.string()).optional().default([]),
 });
 
 type CodeExplainerProps = z.infer<typeof codeExplainerSchema>;
