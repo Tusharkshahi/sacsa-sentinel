@@ -90,11 +90,18 @@ const CodeHeader = ({
       await navigator.clipboard.writeText(code);
       setCopied(true);
       setError(false);
+      // Reset copied state after 2 seconds
+      timeoutRef.current = setTimeout(() => {
+        setCopied(false);
+        setError(false);
+      }, 2000);
     } catch (err) {
       console.error("Failed to copy code to clipboard:", err);
       setError(true);
+      setCopied(false);
+      // Reset error state after 2 seconds
+      timeoutRef.current = setTimeout(() => setError(false), 2000);
     }
-    timeoutRef.current = setTimeout(() => setError(false), 2000);
   };
 
   const Icon = React.useMemo(() => {
@@ -112,8 +119,11 @@ const CodeHeader = ({
       <span className="lowercase text-muted-foreground">{language}</span>
       <button
         onClick={copyToClipboard}
-        className="p-1 rounded-md hover:bg-backdrop transition-colors cursor-pointer"
-        title={error ? "Failed to copy" : "Copy code"}
+        className={cn(
+          "p-1 rounded-md hover:bg-backdrop transition-all duration-200 cursor-pointer",
+          copied || error ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus:opacity-100"
+        )}
+        title={error ? "Failed to copy" : copied ? "Copied!" : "Copy code"}
       >
         {Icon}
       </button>
@@ -146,7 +156,7 @@ export const createMarkdownComponents = (): Record<
 
     if (match && looksLikeCode(content)) {
       return (
-        <div className="relative border border-border rounded-md bg-muted max-w-[80ch] text-sm my-4">
+        <div className="group relative border border-border rounded-md bg-muted max-w-[80ch] text-sm my-4">
           <CodeHeader language={match[1]} code={content} />
           <div
             className={cn(
