@@ -38,8 +38,8 @@ export const incidentCommanderSchema = z.object({
   }).optional().default({ description: "Generating fix...", steps: [], estimatedTime: "Unknown", riskLevel: "medium" }),
   actions: z.array(
     z.object({
-      label: z.string(),
-      type: z.enum(["rollback", "hotfix", "pr", "investigate"]),
+      label: z.string().default("Action"),
+      type: z.enum(["rollback", "hotfix", "pr", "investigate"]).default("investigate"),
       enabled: z.boolean().default(true),
     })
   ).default([]),
