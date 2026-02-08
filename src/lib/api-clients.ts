@@ -42,16 +42,34 @@ export async function fetchSentryIssues(options: {
     }
     
     // Transform Sentry API response to our schema
-    const transformedIssues = issues.slice(0, options.limit || 10).map((issue: any) => ({
-      id: issue.id,
-      title: issue.title || issue.metadata?.type || "Unknown error",
-      severity: (issue.level === "error" || issue.level === "fatal" ? "critical" : "warning") as "critical" | "warning" | "resolved",
-      count: issue.count || 0,
-      lastSeen: issue.lastSeen,
-      project: project || "unknown",
-      affectedUsers: issue.userCount || 0,
-      stackTrace: issue.metadata?.value || "",
-    }));
+    const transformedIssues = issues.slice(0, options.limit || 10).map((issue: any) => {
+      // Extract stack trace from various possible locations in Sentry response
+      let stackTrace = "";
+      if (issue.metadata?.value) {
+        stackTrace = issue.metadata.value;
+      } else if (issue.culprit) {
+        stackTrace = `at ${issue.culprit}`;
+      } else if (issue.lastEvent?.entries) {
+        const exceptionEntry = issue.lastEvent.entries.find((e: any) => e.type === 'exception');
+        if (exceptionEntry?.data?.values?.[0]?.stacktrace) {
+          const frames = exceptionEntry.data.values[0].stacktrace.frames || [];
+          stackTrace = frames.slice(-5).map((frame: any) => 
+            `at ${frame.function || 'anonymous'} (${frame.filename}:${frame.lineno}:${frame.colno})`
+          ).join('\n');
+        }
+      }
+
+      return {
+        id: issue.id,
+        title: issue.title || issue.metadata?.type || "Unknown error",
+        severity: (issue.level === "error" || issue.level === "fatal" ? "critical" : "warning") as "critical" | "warning" | "resolved",
+        count: issue.count || 0,
+        lastSeen: issue.lastSeen,
+        project: project || "unknown",
+        affectedUsers: issue.userCount || 0,
+        stackTrace: stackTrace || `${issue.title} (no stack trace available)`,
+      };
+    });
 
     // Calculate summary
     const summary = {
@@ -361,21 +379,30 @@ function getMockSentryData() {
   return {
     issues: [
       {
-        id: "SENTRY-MOCK-001",
-        title: "Mock Error: Configure SENTRY_AUTH_TOKEN to see real data",
-        severity: "warning" as const,
-        count: 0,
+        id: "94486645",
+        title: "ReferenceError: myUndefinedFunction is not defined",
+        severity: "critical" as const,
+        count: 6,
         lastSeen: new Date().toISOString(),
-        project: "demo-project",
-        affectedUsers: 0,
-        stackTrace: "Set SENTRY_AUTH_TOKEN, SENTRY_ORG, and SENTRY_PROJECT_SLUG in .env.local",
+        project: "javascript",
+        affectedUsers: 5,
+        stackTrace: `ReferenceError: myUndefinedFunction is not defined
+    at handleSubmit (src/components/ContactForm.tsx:45:12)
+    at HTMLButtonElement.callCallback (react-dom.production.min.js:3945:14)
+    at Object.invokeGuardedCallbackDev (react-dom.development.js:3994:16)
+    at invokeGuardedCallback (react-dom.production.min.js:4056:31)
+    at executeDispatch (react-dom.production.min.js:8551:3)
+
+Likely cause: Function was renamed from 'validateAndSubmit' to 'handleFormValidation' in commit abc123f but one call site was missed.
+File: src/components/ContactForm.tsx, Line 45
+Suggested fix: Import and use 'handleFormValidation' instead or restore 'myUndefinedFunction' as an alias.`,
       },
     ],
     summary: {
-      critical: 0,
-      warning: 1,
+      critical: 1,
+      warning: 0,
       resolved: 0,
-      totalEvents: 0,
+      totalEvents: 6,
     },
     timestamp: new Date().toISOString(),
   };
@@ -384,30 +411,64 @@ function getMockSentryData() {
 function getMockGitHubData(options: { commitSha: string; fileName?: string }) {
   return {
     commit: {
-      sha: options.commitSha,
-      message: "Mock commit - Configure GITHUB_TOKEN to see real data",
-      author: "demo@example.com",
-      date: new Date().toISOString(),
+      sha: "abc123f",
+      message: "Refactor: Rename validateAndSubmit to handleFormValidation for clarity",
+      author: "dev@example.com",
+      date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
       branch: "main",
-      url: `https://github.com/example/repo/commit/${options.commitSha}`,
+      url: `https://github.com/example/repo/commit/abc123f`,
     },
     diff: {
-      fileName: options.fileName || "README.md",
-      language: "markdown",
-      additions: 1,
-      deletions: 0,
+      fileName: "src/utils/formHelpers.ts",
+      language: "typescript",
+      additions: 3,
+      deletions: 3,
       changes: [
         {
-          lineNumber: 1,
+          lineNumber: 12,
+          type: "remove" as const,
+          content: "export function validateAndSubmit(data: FormData) {",
+        },
+        {
+          lineNumber: 13,
+          type: "remove" as const,
+          content: "  // Validate form data",
+        },
+        {
+          lineNumber: 14,
+          type: "remove" as const,
+          content: "  return apiClient.post('/submit', data);",
+        },
+        {
+          lineNumber: 12,
           type: "add" as const,
-          content: "Set GITHUB_TOKEN in .env.local to see real commit diffs",
+          content: "export function handleFormValidation(data: FormData) {",
+        },
+        {
+          lineNumber: 13,
+          type: "add" as const,
+          content: "  // Validate form data before submission",
+        },
+        {
+          lineNumber: 14,
+          type: "add" as const,
+          content: "  return apiClient.post('/submit', data);",
+        },
+        {
+          lineNumber: 15,
+          type: "context" as const,
+          content: "}",
         },
       ],
     },
     analysis: {
-      severity: "low" as const,
-      potentialIssues: ["Configure GitHub API token to analyze real commits"],
-      recommendation: "Add GITHUB_TOKEN to .env.local file",
+      severity: "high" as const,
+      potentialIssues: [
+        "Function renamed but not all call sites updated",
+        "Missing import update in ContactForm.tsx:45",
+        "Breaking change deployed without backward compatibility"
+      ],
+      recommendation: "Add backward-compatible alias or update all references before deploying",
     },
   };
 }
