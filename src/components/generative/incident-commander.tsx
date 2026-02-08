@@ -39,7 +39,32 @@ export const incidentCommanderSchema = z.object({
   actions: z.array(
     z.object({
       label: z.string().default("Action"),
-      type: z.enum(["rollback", "hotfix", "pr", "investigate"]).default("investigate"),
+      type: z.preprocess(
+        (val) => {
+          // Normalize action types to handle common variations
+          if (typeof val !== 'string') return 'investigate';
+          const normalized = val.toLowerCase().trim();
+          const typeMap: Record<string, string> = {
+            "rollback": "rollback",
+            "roll back": "rollback",
+            "revert": "rollback",
+            "hotfix": "hotfix",
+            "hot fix": "hotfix",
+            "patch": "hotfix",
+            "fix": "hotfix",
+            "pr": "pr",
+            "pull request": "pr",
+            "pullrequest": "pr",
+            "create pr": "pr",
+            "investigate": "investigate",
+            "analyze": "investigate",
+            "debug": "investigate",
+            "check": "investigate",
+          };
+          return typeMap[normalized] || "investigate";
+        },
+        z.enum(["rollback", "hotfix", "pr", "investigate"])
+      ).default("investigate"),
       enabled: z.boolean().default(true),
     })
   ).default([]),
